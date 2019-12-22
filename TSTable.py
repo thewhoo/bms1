@@ -38,11 +38,9 @@ class TSTable(ABC):
         self._pointer_filler_bytes = wrapper.get_bytes(self._pointer_field)
 
         self._table_id = wrapper.get_byte()
-        print(self._table_id)
         # Indicates that there is not a valid table after the end of the previous section
         # Rest of bytes in packet are 0xff stuffing
         if self._table_id == 0xff:
-            print('skipping table')
             return
 
         # Parse 2 byte PSI header bitfield
@@ -53,8 +51,6 @@ class TSTable(ABC):
         self._section_length_unused_bits = (hdr_bytes & 0x0c00) >> 10
         # Substract the length of CRC32 at the end of section
         self._section_length = (hdr_bytes & 0x03ff) - 4
-
-        print(f'section len: {self._section_length}')
 
         # Reserved bits should all be set
         if self._reserved_bits != 0x03:
