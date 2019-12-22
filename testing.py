@@ -14,9 +14,11 @@ else:
 
 with open(tsfile, 'rb') as f:
     w = BinaryPacketWrapper(f)
+    pid_dict = {}
     ts_data = TSData()
+    pmt_dict = {}
     while not w.is_eof:
-        MPEGPacket.parse_packet(w, ts_data)
+        MPEGPacket.parse_packet(w, ts_data, pid_dict, pmt_dict)
         w.next_packet()
 
     print(f'Network name: {ts_data.nit_table.network_name}')
@@ -29,6 +31,12 @@ with open(tsfile, 'rb') as f:
 
     for e in ts_data.pat_table.entries:
         if e.program_num != 0:
-            print(f'0x{e.program_map_pid:04x}-{ts_data.sdt_table.providers[e.program_num]}-{ts_data.sdt_table.svcnames[e.program_num]}')
 
-    print(f"pkts read: {w.pkt_read_count}")
+            total_associated_packets = 0
+
+            for pid in pmt_dict[e.program_num].associated_pids:
+                if pid in pid_dict:
+                    total_associated_packets += pid_dict[pid]
+
+            program_ratio = total_associated_packets / w.pkt_read_count
+            print(f'0x{e.program_map_pid:04x}-{ts_data.sdt_table.providers[e.program_num]}-{ts_data.sdt_table.svcnames[e.program_num]}: {program_ratio:.4f} (program_packets/total_packets)')

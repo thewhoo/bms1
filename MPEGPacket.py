@@ -6,6 +6,7 @@ from BinaryPacketWrapper import MPEGPacketBinaryReadException
 from MPEGAdaptationField import MPEGAdaptationField
 import MPEGAdaptationField
 from TSData import TSData
+from PMTTable import PMTTable
 
 HDR_SYNC_BYTE = 0xff000000  # Magic 0x47
 HDR_TEI = 0x00800000  # Transport error indicator
@@ -21,7 +22,7 @@ class MPEGParseException(Exception):
     pass
 
 
-def parse_packet(wrapper: BinaryPacketWrapper, ts_data: TSData):
+def parse_packet(wrapper: BinaryPacketWrapper, ts_data: TSData, pid_dict, pmt_dict):
     if wrapper.current_read_bytes > 0:
         raise MPEGParseException('BinaryPacketWrapper offset is not at beginning of packet')
 
@@ -34,6 +35,11 @@ def parse_packet(wrapper: BinaryPacketWrapper, ts_data: TSData):
     hdr_tsc = (header & HDR_TSC) >> 6
     hdr_afc = (header & HDR_AFC) >> 4
     hdr_continuity_counter = (header & HDR_CCOUNTER)
+
+    if hdr_pid in pid_dict:
+        pid_dict[hdr_pid] += 1
+    else:
+        pid_dict[hdr_pid] = 1
 
     if hdr_sync_byte != 0x47:
         raise MPEGParseException('Invalid sync_byte when parsing MPEG-TS header')
@@ -52,5 +58,8 @@ def parse_packet(wrapper: BinaryPacketWrapper, ts_data: TSData):
     # Check if this is PMT of some program
     else:
         for e in ts_data.pat_table.entries:
-            if hdr_pid == e.program_map_pid:
-                print(f'found PMT for program {e.program_map_pid:04x}')
+            if hdr_pid == e.program_map_pid and e.program_num != 0:
+                if e.program_num not in pmt_dict:
+                    t = PMTTable(e.program_num, e.program_map_pid)
+                    t.parse(wrapper)
+                    pmt_dict[e.program_num] = t
