@@ -1,6 +1,7 @@
 """ Wrapper over MPEG2-TS packet binary IO """
 import typing
 import io
+import itertools
 
 PKT_BYTE_COUNT = 188
 
@@ -41,6 +42,22 @@ class BinaryPacketWrapper:
         self.seek(PKT_BYTE_COUNT - self._read_bytes)
         self._pkt_read_count += 1
         self._read_bytes = 0
+
+    # Allow automatic transfer to next packet
+    def get_bytes_auto_shift(self, count):
+        if self._read_bytes + count > PKT_BYTE_COUNT:
+            # Read in rest of bytes in current packet
+            remaining = count - (PKT_BYTE_COUNT - self._read_bytes)
+            pkt_bytes = self.get_bytes(PKT_BYTE_COUNT - self._read_bytes)
+            # Move to next packet
+            self.next_packet()
+            self.get_bytes(4)
+            return bytes(itertools.chain(pkt_bytes, self.get_bytes(remaining)))
+        else:
+            return self.get_bytes(count)
+
+    def get_byte_auto_shift(self):
+        return self.get_bytes_auto_shift(1)[0]
 
     @property
     def pkt_read_count(self):
