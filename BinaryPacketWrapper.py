@@ -30,8 +30,15 @@ class BinaryPacketWrapper:
     def get_byte(self):
         return self.get_bytes(1)[0]
 
-    def seek_packet(self):
-        self._fp.seek(PKT_BYTE_COUNT - self._read_bytes, io.SEEK_CUR)
+    def seek(self, offset):
+        if self._read_bytes + offset > PKT_BYTE_COUNT:
+            raise MPEGPacketBinaryReadException('Attempting to seek over packet length')
+
+        self._fp.seek(offset, io.SEEK_CUR)
+        self._read_bytes += offset
+
+    def next_packet(self):
+        self.seek(PKT_BYTE_COUNT - self._read_bytes)
         self._pkt_read_count += 1
         self._read_bytes = 0
 

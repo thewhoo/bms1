@@ -25,6 +25,5 @@ class MPEGAdaptationField:
         self._transport_private_data_flag = bool(af_byte & 0x02)
         self._af_extension_flag = bool(af_byte & 0x01)
 
-        # TODO
         # Skip over potential AF extension fields
-        #wrapper.seek_packet(
+        wrapper.seek(self._length - 1)

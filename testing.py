@@ -15,6 +15,6 @@ with open(tsfile, 'rb') as f:
     w = BinaryPacketWrapper(f)
     while not w.is_eof:
         MPEGPacket.MPEGPacket(w)
-        w.seek_packet()
+        w.next_packet()
 
     print(f"pkts read: {w.pkt_read_count}")
