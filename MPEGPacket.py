@@ -42,10 +42,13 @@ def parse_packet(wrapper: BinaryPacketWrapper, ts_data: TSData):
 
     # Attempt to parse PAT table if not already parsed
     if hdr_pid == 0 and not ts_data.has_pat_table:
+        # print(f'PAT packet: {hdr_pid}')
         ts_data.pat_table.parse(wrapper)
     elif hdr_pid == 16 and not ts_data.has_nit_table:
+        # print(f'NIT packet: {hdr_pid}')
         ts_data.nit_table.parse(wrapper)
     elif hdr_pid == 17 and not ts_data.has_sdt_table:
+        # print(f'SDT packet: {hdr_pid}')
         ts_data.sdt_table.parse(wrapper)
 
 

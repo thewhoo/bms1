@@ -10,4 +10,5 @@ class SDTTable(TSTable):
         super().__init__()
 
     def parse(self, wrapper: BinaryPacketWrapper):
-        pass
+        super().parse(wrapper)
+        #print('run sdtt parse')
