@@ -8,6 +8,18 @@ class MPEGAFParseException(Exception):
     pass
 
 
+def process_adaptation_field(wrapper: BinaryPacketWrapper, afc_flag: int):
+    # Check if AF control flag indicates presence of adaptation field
+    if afc_flag != 0x10 and afc_flag != 0x11:
+        return
+
+    af_length = wrapper.get_byte()
+    if af_length < 1:
+        raise MPEGAFParseException('Invalid adaptation field length')
+
+    wrapper.seek(af_length)
+
+
 class MPEGAdaptationField:
 
     def __init__(self, wrapper: BinaryPacketWrapper):
